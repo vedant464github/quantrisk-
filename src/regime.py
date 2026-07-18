@@ -62,27 +62,47 @@ def fit_hmm(features, n_states=4, n_init=10, random_state=42,
         raise RuntimeError("All HMM inits failed — check features for NaNs/near-constant columns")
 
     hidden_states = best_model.predict(X_scaled)
-    model.scaler_ = scaler  # stash it — you'll need this to unscale means_ for labeling
+    best_model.scaler_ = scaler  # stash it — you'll need this to unscale means_ for labeling
     return best_model, hidden_states
 
 
 def label_regimes(model, hidden_states, features):
     """
-    Auto-label regimes by mean return of each state.
-    Highest mean return = Bull, lowest = Bear/Crisis.
+    Labels states via 2D (return, volatility) classification, not return
+    rank alone. Ranking by return alone conflates two distinct "bad"
+    regimes: a low-vol grinding decline (2008-style) can post a more
+    negative mean return than a short, violent, high-vol crash (COVID-
+    style), even though the latter is what a risk engine should flag as
+    Bear/Crisis. Fix: split states into calm (bottom half by mean vol)
+    vs stressed (top half by mean vol) first, then rank by return only
+    within each half.
     """
-    state_means = {}
+    state_stats = {}
     for state in range(model.n_components):
         mask = hidden_states == state
-        state_means[state] = features["return"][mask].mean()
+        state_stats[state] = {
+            "return": features["return"][mask].mean(),
+            "vol": features["volatility"][mask].mean(),
+        }
 
-    sorted_states = sorted(state_means, key=state_means.get, reverse=True)
-    n = len(sorted_states)
+    states_by_vol = sorted(state_stats, key=lambda s: state_stats[s]["vol"])
+    half = len(states_by_vol) // 2
+    calm_states = states_by_vol[:half]
+    stressed_states = states_by_vol[half:]
+
+    calm_sorted = sorted(calm_states, key=lambda s: state_stats[s]["return"], reverse=True)
+    stressed_sorted = sorted(stressed_states, key=lambda s: state_stats[s]["return"], reverse=True)
 
     labels = {}
-    label_names = {0: "Bull", 1: "Neutral", 2: "High-Vol", 3: "Bear/Crisis"}
-    for rank, state in enumerate(sorted_states):
-        labels[state] = label_names.get(rank, f"State-{rank}")
+    calm_names = ["Bull", "Neutral"]
+    stressed_names = ["High-Vol", "Bear/Crisis"]
+    for i, state in enumerate(calm_sorted):
+        labels[state] = calm_names[i] if i < len(calm_names) else f"Calm-{i}"
+    for i, state in enumerate(stressed_sorted):
+        labels[state] = stressed_names[i] if i < len(stressed_names) else f"Stressed-{i}"
+
+    print("State stats (return, vol):", state_stats)
+    print("Labels:", labels)
 
     regime_series = pd.Series(
         [labels[s] for s in hidden_states],
