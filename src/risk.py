@@ -223,3 +223,4 @@ def calculate_beta(portfolio_returns, benchmark_returns):
     benchmark_variance = bench_ret.var()
 
     return covariance / benchmark_variance
+
