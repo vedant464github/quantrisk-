@@ -1,0 +1,22 @@
+{
+  "Bull": {
+    "mean_return": 0.0008755014588094827,
+    "mean_volatility": 0.09879331380689137,
+    "n_obs": 1537
+  },
+  "Bear/Crisis": {
+    "mean_return": 0.0004516137128326169,
+    "mean_volatility": 0.369084006346147,
+    "n_obs": 669
+  },
+  "Neutral": {
+    "mean_return": 0.00028454259740271187,
+    "mean_volatility": 0.13972136012309674,
+    "n_obs": 1739
+  },
+  "High-Vol": {
+    "mean_return": 0.0007567598569159462,
+    "mean_volatility": 0.1977824571553867,
+    "n_obs": 1106
+  }
+}

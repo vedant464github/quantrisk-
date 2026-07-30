@@ -1,0 +1,18 @@
+{
+  "last_updated_utc": "2026-07-22T09:19:22.595602+00:00",
+  "tickers": [
+    "RELIANCE.NS",
+    "TCS.NS",
+    "HDFCBANK.NS",
+    "INFY.NS",
+    "ICICIBANK.NS",
+    "WIPRO.NS",
+    "MARUTI.NS",
+    "BAJFINANCE.NS",
+    "SUNPHARMA.NS",
+    "ITC.NS"
+  ],
+  "start_date": "2006-01-01",
+  "end_date": "2026-07-22",
+  "n_observations": 5071
+}
